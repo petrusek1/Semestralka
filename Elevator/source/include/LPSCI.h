@@ -9,14 +9,10 @@
 
 #include <stddef.h>
 
-/**
- * \brief initialize lpsci hardware with interrupt based reading
- */
+//inicializacia rozhrania na komunikaciu
 void lpsci_init();
 
-/**
- * \brief send buffer via lpsci
- */
-void lpsci_send(char *buff, size_t len);
+//metoda na posielanie sprav
+void lpsci_sendMessage(char *buff, size_t dlzka);
 
 #endif /* LPSCI_H_ */

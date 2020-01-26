@@ -12,9 +12,8 @@
 
 #include <stdint.h>
 
-
+//zadefinovanie registrov pre akcelerometer
 #define MMA8451_ADDR 0x1D
-
 #define ADDR_XYZ_DATA_CFG 0x0E
 #define ADDR_CTRL_REG1 0x2A
 #define ADDR_CTRL_REG4 0x2D
@@ -26,6 +25,7 @@
 #define ADDR_PULSE_TMLT 0x26
 #define ADDR_PULSE_LTCY 0x27
 
-void mma8451_init();
+//metoda na inicializaciu akcelerometra
+void MMA8451_init();
 
 #endif /* MMA8451_H_ */
