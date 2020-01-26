@@ -12,51 +12,51 @@
 #include "fsl_lpsci.h"
 #include "clock_config.h"
 #include "pin_mux.h"
+#include "include/Definitions.h"
 
-//#include "lift_defs.h"
+#define UART UART0
+#define CLKSRC kCLOCK_CoreSysClk
+#define CLK_FREQ CLOCK_GetFreq(kCLOCK_CoreSysClk)
+#define IRQn UART0_IRQn
+#define IRQHandler UART0_IRQHandler
 
-#define LPSCI_UART UART0
-#define LPSCI_CLKSRC kCLOCK_CoreSysClk
-#define LPSCI_CLK_FREQ CLOCK_GetFreq(kCLOCK_CoreSysClk)
-#define LPSCI_IRQn UART0_IRQn
-#define LPSCI_IRQHandler UART0_IRQHandler
-#define RX_RINGBUFF_SIZE 32
-#define SERIAL_SPEED 230400
 
-uint8_t rx_buff_wptr = RX_RINGBUFF_SIZE-1, rx_buff_rptr = RX_RINGBUFF_SIZE-1;
-char rx_buff[RX_RINGBUFF_SIZE];
-uint8_t bytes_to_parse = 0;
+volatile uint8_t rx_buff_write_pointer = RX_RINGBUFF_SIZE-1;
+volatile uint8_t rx_buff_read_pointer = RX_RINGBUFF_SIZE-1;
+volatile char rx_buff[RX_RINGBUFF_SIZE];
+volatile uint8_t bytes_to_parse = 0;
 
-void LPSCI_IRQHandler(void){
+void IRQHandler(void){
 
-    if ((kLPSCI_RxDataRegFullFlag)&LPSCI_GetStatusFlags(LPSCI_UART)) {
-        uint8_t data = LPSCI_ReadByte(LPSCI_UART);
+    if ((kLPSCI_RxDataRegFullFlag)&LPSCI_GetStatusFlags(UART)) {
+        uint8_t data = LPSCI_ReadByte(UART);
 
-        rx_buff_wptr++;
-        rx_buff_wptr %= RX_RINGBUFF_SIZE;
-        rx_buff[rx_buff_wptr] = data;
+        rx_buff_write_pointer++;
+        rx_buff_write_pointer %= RX_RINGBUFF_SIZE;
+        rx_buff[rx_buff_write_pointer] = data;
         bytes_to_parse++;
     }
 }
 
+//metoda na inicializovanie komunikacneho rozhranie
 void lpsci_init(){
 	lpsci_config_t config;
 
     CLOCK_SetLpsci0Clock(0x1U);
 
     LPSCI_GetDefaultConfig(&config);
-    config.baudRate_Bps = SERIAL_SPEED;
+    config.baudRate_Bps = BAUDRATE;
     config.enableTx = true;
     config.enableRx = true;
 
-    LPSCI_Init(LPSCI_UART, &config, LPSCI_CLK_FREQ);
+    LPSCI_Init(UART, &config, CLK_FREQ);
 
-    LPSCI_EnableInterrupts(LPSCI_UART, kLPSCI_RxDataRegFullInterruptEnable);
+    LPSCI_EnableInterrupts(UART, kLPSCI_RxDataRegFullInterruptEnable);
 
-    NVIC_SetPriority(LPSCI_IRQn, 2);
-    EnableIRQ(LPSCI_IRQn);
+    NVIC_SetPriority(IRQn, 2);
+    EnableIRQ(IRQn);
 }
 
-void lpsci_send(char *buff, size_t dlzka){
-    LPSCI_WriteBlocking(LPSCI_UART, (uint8_t *) buff, dlzka);
+void lpsci_sendMessage(char *buff, size_t dlzka){
+    LPSCI_WriteBlocking(UART, (uint8_t *) buff, dlzka);
 }

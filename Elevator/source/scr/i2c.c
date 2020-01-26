@@ -47,6 +47,7 @@ void BOARD_I2C_ReleaseBus(void){
 	gpio_pin_config_t pin_config;
 	port_pin_config_t i2c_pin_config = {0};
 
+	/* Config pin mux as gpio */
 	i2c_pin_config.pullSelect = kPORT_PullUp;
 	i2c_pin_config.mux = kPORT_MuxAsGpio;
 
@@ -101,15 +102,15 @@ void i2c_init(){
 	I2C_MasterInit(BOARD_ACCEL_I2C_BASEADDR, &masterConfig, sourceClock);
 }
 
-bool i2c_write(uint8_t device, uint8_t addr, uint8_t data){
+bool i2c_write(uint8_t device, uint8_t wr_addr, uint8_t wr_data){
 	i2c_master_transfer_t masterXfer;
 
 	memset(&masterXfer, 0, sizeof(masterXfer));
 	masterXfer.slaveAddress = device;
 	masterXfer.direction = kI2C_Write;
-	masterXfer.subaddress = addr;
+	masterXfer.subaddress = wr_addr;
 	masterXfer.subaddressSize = 1;
-	masterXfer.data = &data;
+	masterXfer.data = &wr_data;
 	masterXfer.dataSize = 1;
 	masterXfer.flags = kI2C_TransferDefaultFlag;
 
@@ -130,16 +131,16 @@ bool i2c_write(uint8_t device, uint8_t addr, uint8_t data){
 	}
 }
 
-bool i2c_read(uint8_t device, uint8_t addr, uint8_t *data, size_t dlzka){
+bool i2c_read(uint8_t device, uint8_t rd_addr, uint8_t *rd_data, size_t len){
 	i2c_master_transfer_t masterXfer;
 
 	memset(&masterXfer, 0, sizeof(masterXfer));
 	masterXfer.slaveAddress = device;
 	masterXfer.direction = kI2C_Read;
-	masterXfer.subaddress = addr;
+	masterXfer.subaddress = rd_addr;
 	masterXfer.subaddressSize = 1;
-	masterXfer.data = data;
-	masterXfer.dataSize = dlzka;
+	masterXfer.data = rd_data;
+	masterXfer.dataSize = len;
 	masterXfer.flags = kI2C_TransferDefaultFlag;
 
 	I2C_MasterTransferNonBlocking(BOARD_ACCEL_I2C_BASEADDR, &g_m_handle, &masterXfer);
@@ -159,3 +160,4 @@ bool i2c_read(uint8_t device, uint8_t addr, uint8_t *data, size_t dlzka){
 		return false;
 	}
 }
+
