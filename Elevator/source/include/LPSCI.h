@@ -1,17 +1,22 @@
-/*
- * LPSCI.h
+/**
+ * \file lscpi.h
  *
- *  Created on: 24. 1. 2020
- *      Author: Daniel
+ * \brief lscpi header file
  */
 
-#ifndef INCLUDE_LPSCI_H_
-#define INCLUDE_LPSCI_H_
+#ifndef LPSCI_H_
+#define LPSCI_H_
 
 #include <stddef.h>
 
-
+/**
+ * \brief initialize lpsci hardware with interrupt based reading
+ */
 void lpsci_init();
-void lpsci_send(char *buff, size_t dlzka);
 
-#endif /* INCLUDE_LPSCI_H_ */
+/**
+ * \brief send buffer via lpsci
+ */
+void lpsci_send(char *buff, size_t len);
+
+#endif /* LPSCI_H_ */

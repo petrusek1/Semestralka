@@ -10,19 +10,11 @@
 
 #include "fsl_i2c.h"
 
-/**
- * \brief i2c initialization
- */
+//inicializacia i2c
 void i2c_init();
-
-/**
- * \brief write one byte to i2c device
- */
+// zapis
 bool i2c_write(uint8_t device, uint8_t addr, uint8_t data);
-
-/**
- * \brief read one byte from i2c device
- */
+//citanie
 bool i2c_read(uint8_t device, uint8_t rd_addr, uint8_t *rd_data, size_t dlzka);
 
 #endif /* INCLUDE_I2C_H_ */

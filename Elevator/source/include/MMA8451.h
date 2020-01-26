@@ -8,7 +8,10 @@
 #ifndef INCLUDE_MMA8451_H_
 #define INCLUDE_MMA8451_H_
 
+
+
 #include <stdint.h>
+
 
 #define MMA8451_ADDR 0x1D
 
@@ -25,6 +28,4 @@
 
 void mma8451_init();
 
-#endif /* INCLUDE_MMA8451_H_ */
-
-
+#endif /* MMA8451_H_ */
