@@ -7,9 +7,10 @@
 
 
 #include <stdint.h>
+#include <stdlib.h>
 #include "stdio.h"
 #include "string.h"
-
+#include "include/Timer.h"
 #include "include/Protokol.h"
 #include "include/Definitions.h"
 #include "include/Components.h"
@@ -17,7 +18,10 @@
 uint8_t events = 0;
 uint8_t event_buff_write_pointer = 0;
 char event_buff[EVENT_BUFF_SIZE][2];
-extern volatile uint8_t rx_buff_wptr, rx_buff_rptr;
+extern volatile char timer_int;
+extern volatile uint8_t rx_buff_write_pointer ;
+extern volatile uint8_t rx_buff_read_pointer;
+
 int16_t cabin_position = 0;  //-1
 
 //inicializacia elevatoru ,zistenie statusu, vypnutie vsetkych led
@@ -136,10 +140,20 @@ char next_floor_dir(uint_fast8_t aktualne_poschodie, uint_fast8_t tlacidla, char
 }
 
 
+
+void delay_ms_timer(const uint_fast16_t time){
+	timer_start_ms(time);
+
+	while(!timer_int){
+		if(rx_buff_read_pointer != rx_buff_write_pointer)
+			analize_incoming_packet();
+
+	}
+}
+
+//metoda na parkovanie vytahu _zarovnanie cca na poschodie
 void elevator_parking(){
 	extern int16_t cabin_position;
-	extern volatile uint8_t rx_buff_write_pointer ;
-	extern volatile uint8_t rx_buff_read_pointer;
 
 	while(cabin_position < 0){
 					if(rx_buff_read_pointer != rx_buff_write_pointer)
@@ -161,6 +175,7 @@ void elevator_parking(){
 		if(abs(pos_vzd) > 2){
 					int8_t spd; //rychlost speed
 					status_door_control(DOOR_LOCK);
+					delay_ms_timer(1000);
 
 					if(abs(pos_vzd) > 40)
 						spd = MOTOR_SPEED_PARK_HI;   //parkovanie vytahu ma poschodi podla rychlosti
@@ -193,7 +208,7 @@ void elevator_parking(){
 									}
 								}
 							}
-
+					delay_ms_timer(1000);
 			}
 
 			status_door_control(DOOR_UNLOCK);
@@ -203,11 +218,9 @@ void elevator_parking(){
 }
 
 
-
+//logika pre pohyb vytahu pri stlaceni tlacidla
 void elevator_moving_buttons(){
 		uint8_t tlacidla=0;
-		extern volatile uint8_t rx_buff_write_pointer ;
-		extern volatile uint8_t rx_buff_read_pointer;
 
 		char pohyb = 0;
 		char smer = 0;
@@ -244,8 +257,10 @@ void elevator_moving_buttons(){
 											led_set(LED_WALL_P + poschodie, LED_OFF);
 											tlacidla &= ~(1<<poschodie);
 											lcd(LCD_CLEAR, poschodie);
-
+											delay_ms_timer(1000);
 											status_door_control(DOOR_UNLOCK);
+											delay_ms_timer(DOOR_OPENING_MS);
+											delay_ms_timer(DELAY_FLOOR_MS);
 										}
 
 										else if((tlacidla & (1<<poschodie)) && udalost.data == LIMIT_DIST_MED){
@@ -264,6 +279,7 @@ void elevator_moving_buttons(){
 							smer = next_floor_dir(aktualne_poschodie, tlacidla, smer);
 
 							status_door_control(DOOR_LOCK);
+							delay_ms_timer(DOOR_CLOSING_MS);
 							lcd(1+smer, aktualne_poschodie);
 							motor_move(smer==UP ? MOTOR_SPEED_HI : -MOTOR_SPEED_HI);
 							pohyb = 1;

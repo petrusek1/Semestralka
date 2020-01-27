@@ -54,6 +54,8 @@
 #include "include/Protokol.h"
 #include "include/i2c.h"
 #include "include/MMA8451.h"
+#include "include/Timer.h"
+
 
 int main(void) {
 
@@ -66,6 +68,7 @@ int main(void) {
 	i2c_init();
 	MMA8451_init();
 	EnableIRQ(PORTA_IRQn);
+	timers_init(1000);
 	lpsci_init();
 	elevator_init();
 	elevator_parking();

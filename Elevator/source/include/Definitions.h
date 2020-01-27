@@ -12,8 +12,8 @@
 //definicia pre vytah
 #define BAUDRATE 230400
 #define FLOOR_HEIGHT 225
-#define DOOR_OPENING_MS 250
-#define DOOR_CLOSING_MS 250
+#define DOOR_OPENING_MS 500
+#define DOOR_CLOSING_MS 500
 #define DELAY_FLOOR_MS 1000
 #define MOTOR_SPEED_HI 100
 #define MOTOR_SPEED_LOW 10
