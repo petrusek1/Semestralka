@@ -18,7 +18,7 @@ uint8_t events = 0;
 uint8_t event_buff_write_pointer = 0;
 char event_buff[EVENT_BUFF_SIZE][2];
 extern volatile uint8_t rx_buff_wptr, rx_buff_rptr;
-int16_t cabin_position = -1;
+int16_t cabin_position = 0;  //-1
 
 //inicializacia elevatoru ,zistenie statusu, vypnutie vsetkych led
 void elevator_init(){
@@ -31,7 +31,7 @@ void elevator_init(){
 }
 
 //kontrola stavu dveri
-void door_control(uint8_t new_state){
+void status_door_control(uint8_t new_state){
 	protocol_sendMessage(DOOR, (char *) &new_state, 1);
 }
 //rozsvietenie led

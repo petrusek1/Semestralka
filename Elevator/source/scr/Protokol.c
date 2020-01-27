@@ -153,10 +153,13 @@ void analize_incoming_packet(){
 		if((rx_buff[start] == 0xA0) && (zdrojova_addr == MOTOR) && (packet(6) == crc(CONTROLLER_ADDR, zdrojova_addr, tmp, 2))){
 			cabin_position = * (int16_t *)tmp;
 			send_ack(zdrojova_addr);
-		}
+		}  								//kontrolny sucet sa zhoduje
 
 		return;
 	}
+
+
+
 	else
 		return;
 	if(rx_buff[start] == 0xA1 && zdrojova_addr == ack)	//prislo potvrdenie poslednej odoslanej spravy

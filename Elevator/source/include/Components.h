@@ -13,7 +13,7 @@
 //inicializacia vytahu
 void elevator_init();
 //metoda na zistenie statusu dveri
-void status_door(uint8_t new_status);
+void status_door_control(uint8_t new_status);
 //metoda na nastavenie led on/off
 void led_set(uint8_t led, uint8_t on);
 //metoda na zstavenie motora
@@ -27,7 +27,7 @@ void set_brake(uint8_t status);
 //metoda pre lcd display
 void lcd(uint8_t smer, uint8_t poschodie);
 //funckia na cakanie dalsej poziadavky
-uint8_t get_events_();
+uint8_t get_events();
 //funkcia na pridanie poziadavky
 uint8_t event_add(char zdroj, char data);
 //funkcia na citanie poziadavky
