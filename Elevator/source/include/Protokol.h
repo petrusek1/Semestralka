@@ -13,6 +13,6 @@
 //metoda na poslanie paketu
 void protocol_sendMessage(char dest, char *data, size_t data_dlzka);
 //metoda na rozparsovanie
-void parse();
+void analize_incoming_packet();
 
 #endif /* INCLUDE_PROTOKOL_H_ */

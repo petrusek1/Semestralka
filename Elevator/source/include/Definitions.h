@@ -12,15 +12,15 @@
 //definicia pre vytah
 #define BAUDRATE 230400
 #define FLOOR_HEIGHT 225
-#define DOOR_OPENING_MS 1000
-#define DOOR_CLOSING_MS 1000
+#define DOOR_OPENING_MS 250
+#define DOOR_CLOSING_MS 250
 #define DELAY_FLOOR_MS 1000
-#define MOTOR_SPEED_HI 70
+#define MOTOR_SPEED_HI 100
 #define MOTOR_SPEED_LOW 10
 #define MOTOR_SPEED_PARK_HI 25
 #define MOTOR_SPEED_PARK_LOW 10
 #define RX_RINGBUFF_SIZE 32
-#define EVENT_BUFF_SIZE 8
+#define EVENT_BUFF_SIZE 2
 #define CONTROLLER_ADDR 0x00
 #define SERIAL_RETRY_COUNT 10;
 #define DOOR 0xF0
@@ -38,12 +38,6 @@ enum {
 enum {
 	DOOR_UNLOCK,
 	DOOR_LOCK
-};
-
-//enum pre brzdy ON/OFF
-enum {
-	BRAKE_OFF,
-	BRAKE_ON
 };
 
 //Status pre LCD display
