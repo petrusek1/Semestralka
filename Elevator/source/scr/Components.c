@@ -113,24 +113,163 @@ event_t event_read(){
 }
 
 //funckia na vypocet dalsieho poschodia
-char next_floor_dir(uint_fast8_t aktualny_stav, uint_fast8_t tlacidlo, char stav){
-	uint8_t min_stav=255;
+char next_floor_dir(uint_fast8_t aktualne_poschodie, uint_fast8_t tlacidla, char smer){
+	uint8_t min_smer=255;
 	uint8_t min_vzdialenost=255;
 
 	for(uint8_t i=0; i<=4; i++){
-		if(tlacidlo & (1<<i)){
-			uint8_t vzdialenost = abs((aktualny_stav - i));
-			if((i < aktualny_stav) == (stav == UP))
+		if(tlacidla & (1<<i)){
+			uint8_t vzdialenost = abs((aktualne_poschodie - i));
+			if((i < aktualne_poschodie) == (smer == UP))
 				vzdialenost += 5;
 			if(vzdialenost < min_vzdialenost){
 				min_vzdialenost = vzdialenost;
-				min_stav = i;
+				min_smer = i;
 			}
 		}
 	}
 
-	if(min_stav > aktualny_stav)
+	if(min_smer > aktualne_poschodie)
 		return UP;
 	else
 		return DOWN;
+}
+
+
+void elevator_parking(){
+	extern int16_t cabin_position;
+	extern volatile uint8_t rx_buff_write_pointer ;
+	extern volatile uint8_t rx_buff_read_pointer;
+
+	while(cabin_position < 0){
+					if(rx_buff_read_pointer != rx_buff_write_pointer)
+						analize_incoming_packet();
+				}
+		//zistenie a zaparkovanie na poschodi start
+		uint8_t aktualne_poschodie = (cabin_position - 50) / FLOOR_HEIGHT;
+				if(cabin_position < 50)
+
+				aktualne_poschodie = 0;
+				if(((cabin_position - 50) % 225) > (FLOOR_HEIGHT/2))
+					aktualne_poschodie++;
+				lcd(LCD_CLEAR, aktualne_poschodie);
+
+		int16_t pos_vzd; //(vzdialenost poschodia)
+		pos_vzd = cabin_position - (50 + (aktualne_poschodie * FLOOR_HEIGHT));
+
+
+		if(abs(pos_vzd) > 2){
+					int8_t spd; //rychlost speed
+					status_door_control(DOOR_LOCK);
+
+					if(abs(pos_vzd) > 40)
+						spd = MOTOR_SPEED_PARK_HI;   //parkovanie vytahu ma poschodi podla rychlosti
+					else
+						spd = MOTOR_SPEED_PARK_LOW;
+
+					if(pos_vzd > 0)
+						spd = -spd;
+
+					motor_move(spd);
+
+					while(1){
+								if(rx_buff_read_pointer != rx_buff_write_pointer)
+									analize_incoming_packet();
+
+								if( get_events()){
+									event_t udalost;
+									udalost = event_read();
+
+									if((udalost.device >= LIMIT_SW_MIN) && (udalost.device <= LIMIT_SW_MAX)){
+										if(udalost.data == LIMIT_DIST_MED){
+											if(spd > 0)
+											motor_move(MOTOR_SPEED_PARK_LOW);
+											else
+												motor_move(-MOTOR_SPEED_PARK_LOW);
+										} else if(udalost.data == LIMIT_DIST_CLOSE) {
+											motor_stop();
+											break;
+										}
+									}
+								}
+							}
+
+			}
+
+			status_door_control(DOOR_UNLOCK);
+
+
+
+}
+
+
+
+void elevator_moving_buttons(){
+		uint8_t tlacidla=0;
+		extern volatile uint8_t rx_buff_write_pointer ;
+		extern volatile uint8_t rx_buff_read_pointer;
+
+		char pohyb = 0;
+		char smer = 0;
+		uint8_t aktualne_poschodie = (cabin_position - 50) / FLOOR_HEIGHT;
+		while(1){
+
+
+
+			if( get_events()){
+				event_t udalost;
+				udalost = event_read();
+
+				if((((udalost.device & 0xF0) == BUTTON_WALL_P) || ((udalost.device & 0xF0) == BUTTON_CABIN_P)) && !(!pohyb && (aktualne_poschodie == (udalost.device & 0x0F)))){
+					uint8_t tlacidlo = udalost.device & 0x0F;
+
+										tlacidla |= 1 << tlacidlo;
+										if((udalost.device & 0xF0) == BUTTON_WALL_P)
+											led_set(LED_WALL_P + tlacidlo, 1);
+										else
+											led_set(LED_CABIN_P + tlacidlo, 1);
+				}
+
+				//osetrene koncove spinace
+				else if((udalost.device & 0xF0) == LIMIT_SW_P) {
+					char poschodie = udalost.device - LIMIT_SW_P;
+										lcd(1+smer, poschodie);
+
+										if((tlacidla & (1<<poschodie)) && udalost.data == LIMIT_DIST_CLOSE) {
+
+											motor_stop();
+											pohyb = 0;
+											aktualne_poschodie = poschodie;
+											led_set(LED_CABIN_P + poschodie, LED_OFF);
+											led_set(LED_WALL_P + poschodie, LED_OFF);
+											tlacidla &= ~(1<<poschodie);
+											lcd(LCD_CLEAR, poschodie);
+
+											status_door_control(DOOR_UNLOCK);
+										}
+
+										else if((tlacidla & (1<<poschodie)) && udalost.data == LIMIT_DIST_MED){
+											motor_move(smer==UP ? MOTOR_SPEED_LOW : -MOTOR_SPEED_LOW);
+										}
+				}
+						}
+
+
+
+
+			if(rx_buff_read_pointer != rx_buff_write_pointer)
+				analize_incoming_packet();
+
+			if(!pohyb && tlacidla){
+							smer = next_floor_dir(aktualne_poschodie, tlacidla, smer);
+
+							status_door_control(DOOR_LOCK);
+							lcd(1+smer, aktualne_poschodie);
+							motor_move(smer==UP ? MOTOR_SPEED_HI : -MOTOR_SPEED_HI);
+							pohyb = 1;
+						}
+
+
+		}
+
 }

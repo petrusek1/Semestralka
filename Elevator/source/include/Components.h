@@ -33,6 +33,11 @@ uint8_t event_add(char zdroj, char data);
 //funkcia na citanie poziadavky
 event_t event_read();
 //funkcia na vypocet dalsieho stavu poschodia
-char next_floor_dir(uint_fast8_t aktualny_stav, uint_fast8_t tlacidlo, char stav);
+char next_floor_dir(uint_fast8_t aktualne_poschodie, uint_fast8_t tlacidla, char smer);
+//parkovanie vytahuna poschodia
+void elevator_parking();
+//metoda na pohyb pri stlaceni tlacidla
+void elevator_moving_buttons();
+
 
 #endif /* INCLUDE_COMPONENTS_H_ */
