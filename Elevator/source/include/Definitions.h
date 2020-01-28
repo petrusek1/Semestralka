@@ -22,7 +22,7 @@
 #define RX_RINGBUFF_SIZE 32
 #define EVENT_BUFF_SIZE 2
 #define CONTROLLER_ADDR 0x00
-#define SERIAL_RETRY_COUNT 10;
+#define RETRY_COUNT 10;
 #define DOOR 0xF0
 #define MOTOR 0xF1
 #define BRAKE 0x0F

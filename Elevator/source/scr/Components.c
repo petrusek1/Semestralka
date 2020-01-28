@@ -17,12 +17,12 @@
 
 uint8_t events = 0;
 uint8_t event_buff_write_pointer = 0;
-char event_buff[EVENT_BUFF_SIZE][2];
+char event_buff[EVENT_BUFF_SIZE][8];
 extern volatile char timer_int;
 extern volatile uint8_t rx_buff_write_pointer ;
 extern volatile uint8_t rx_buff_read_pointer;
 
-int16_t cabin_position = 0;  //-1
+int16_t cabin_position = 0;
 
 //inicializacia elevatoru ,zistenie statusu, vypnutie vsetkych led
 void elevator_init(){
@@ -35,12 +35,12 @@ void elevator_init(){
 }
 
 //kontrola stavu dveri
-void status_door_control(uint8_t new_state){
-	protocol_sendMessage(DOOR, (char *) &new_state, 1);
+void status_door_control(uint8_t new_status){
+	protocol_sendMessage(DOOR, (char *) &new_status, 1);
 }
 //rozsvietenie led
-void led_set(uint8_t led, uint8_t power){
-	protocol_sendMessage(led, (char *) &power, 1);
+void led_set(uint8_t led, uint8_t on){
+	protocol_sendMessage(led, (char *) &on, 1);
 }
 //stop motor
 void motor_stop(){
@@ -64,16 +64,16 @@ void motor_read_status(){
 }
 
 //metoda pre LCD display
-void lcd(uint8_t dir, uint8_t floor){
-	if(floor <5){
+void lcd(uint8_t smer, uint8_t poschodie){
+	if(poschodie <5){
 		char tmp[2];
-		tmp[0] = dir;
-		tmp[1] = (floor == 0) ? ('P') : ('0' + floor);
+		tmp[0] = smer;
+		tmp[1] = (poschodie == 0) ? ('P') : ('0' + poschodie);
 
 		protocol_sendMessage(LCD, tmp, 2);
 	}else{
 		char tmp[2];
-		tmp[0] = dir;
+		tmp[0] = smer;
 		tmp[1] = ' ';
 
 		protocol_sendMessage(LCD, tmp, 2);
@@ -140,7 +140,7 @@ char next_floor_dir(uint_fast8_t aktualne_poschodie, uint_fast8_t tlacidla, char
 }
 
 
-
+//casovac pre prichadzajuce data aby sa stihly spracovat
 void delay_ms_timer(const uint_fast16_t time){
 	timer_start_ms(time);
 
@@ -194,7 +194,7 @@ void elevator_parking(){
 								if( get_events()){
 									event_t udalost;
 									udalost = event_read();
-
+									//podmienka ked sa vytah priblizy ku koncovym spinacom
 									if((udalost.device >= LIMIT_SW_MIN) && (udalost.device <= LIMIT_SW_MAX)){
 										if(udalost.data == LIMIT_DIST_MED){
 											if(spd > 0)
@@ -248,8 +248,9 @@ void elevator_moving_buttons(){
 					char poschodie = udalost.device - LIMIT_SW_P;
 										lcd(1+smer, poschodie);
 
-										if((tlacidla & (1<<poschodie)) && udalost.data == LIMIT_DIST_CLOSE) {
 
+										//zarovannie kabiny na urcenom poschodi a vypnutie led otvoreniedveri,
+										if((tlacidla & (1<<poschodie)) && udalost.data == LIMIT_DIST_CLOSE) {
 											motor_stop();
 											pohyb = 0;
 											aktualne_poschodie = poschodie;
@@ -262,7 +263,7 @@ void elevator_moving_buttons(){
 											delay_ms_timer(DOOR_OPENING_MS);
 											delay_ms_timer(DELAY_FLOOR_MS);
 										}
-
+										//nezastavenie nesplnenie stale pohyb
 										else if((tlacidla & (1<<poschodie)) && udalost.data == LIMIT_DIST_MED){
 											motor_move(smer==UP ? MOTOR_SPEED_LOW : -MOTOR_SPEED_LOW);
 										}
@@ -270,22 +271,16 @@ void elevator_moving_buttons(){
 						}
 
 
-
-
 			if(rx_buff_read_pointer != rx_buff_write_pointer)
 				analize_incoming_packet();
 
 			if(!pohyb && tlacidla){
 							smer = next_floor_dir(aktualne_poschodie, tlacidla, smer);
-
 							status_door_control(DOOR_LOCK);
 							delay_ms_timer(DOOR_CLOSING_MS);
 							lcd(1+smer, aktualne_poschodie);
 							motor_move(smer==UP ? MOTOR_SPEED_HI : -MOTOR_SPEED_HI);
 							pohyb = 1;
 						}
-
-
 		}
-
 }

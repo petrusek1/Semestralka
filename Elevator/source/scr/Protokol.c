@@ -68,7 +68,7 @@ char crc(char cielova_addr, char zdrojova_addr, char* data, size_t dlzka){
 	return crc;
 }
 
-//metoda poslania spravy
+//metoda poslanie spravy obsahujuca ciel, data
 void protocol_sendMessage(char ciel, char *data, size_t data_dlzka){
 	char buff[5 + data_dlzka];
 
@@ -81,7 +81,8 @@ void protocol_sendMessage(char ciel, char *data, size_t data_dlzka){
 
 	ack = ciel;
 
-	uint8_t retry_cnt = SERIAL_RETRY_COUNT;
+
+	uint8_t retry_cnt = RETRY_COUNT;
 	while(retry_cnt--){
 		lpsci_sendMessage(buff, data_dlzka+5);
 
@@ -94,7 +95,7 @@ void protocol_sendMessage(char ciel, char *data, size_t data_dlzka){
 	}
 }
 
-//metoda na poslanie ack
+//metoda na poslanie spravy s potvrdzovacim acknolič
 void send_ack(char ciel){
 	char buff[5] = {0};
 
@@ -104,14 +105,14 @@ void send_ack(char ciel){
 
 	lpsci_sendMessage(buff, 5);
 }
-//metoda na analizovanie prichadzajuceho paketu
+//metoda na analizovanie prichadzajuceho paketu s pamete
 void analize_incoming_packet(){
 	uint8_t start = 255;
 	char vytazenie;
-
 	bytes_to_parse--;
 	rx_buff_read_pointer++;
 	rx_buff_read_pointer %= RX_RINGBUFF_SIZE;
+
 
 	uint8_t pos = rx_buff_read_pointer;
 
@@ -145,13 +146,13 @@ void analize_incoming_packet(){
 			return;		//kontrolny sucet sa nezhoduje
 	}
 	else if(vytazenie_size == 2){		//sprava s 1B dat
-		char tmp[2];
+		char sprava[2];
 
-		tmp[0] = packet(4);
-		tmp[1] = packet(5);
+		sprava[0] = packet(4);
+		sprava[1] = packet(5);
 
-		if((rx_buff[start] == 0xA0) && (zdrojova_addr == MOTOR) && (packet(6) == crc(CONTROLLER_ADDR, zdrojova_addr, tmp, 2))){
-			cabin_position = * (int16_t *)tmp;
+		if((rx_buff[start] == 0xA0) && (zdrojova_addr == MOTOR) && (packet(6) == crc(CONTROLLER_ADDR, zdrojova_addr, sprava, 2))){
+			cabin_position = * (int16_t *)sprava;
 			send_ack(zdrojova_addr);
 		}  								//kontrolny sucet sa zhoduje
 

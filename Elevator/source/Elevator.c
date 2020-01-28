@@ -59,16 +59,16 @@
 
 int main(void) {
 
-	BOARD_InitBootPins();
+    BOARD_InitBootPins();
     BOARD_InitBootClocks();
     BOARD_InitBootPeripherals();
     BOARD_InitDebugConsole();
 
-    //inicializacia rozhrania ktore je potrebne
+    //inicializacia
 	i2c_init();
 	MMA8451_init();
 	EnableIRQ(PORTA_IRQn);
-	timers_init(1000);
+	timer_init(1000);
 	lpsci_init();
 	elevator_init();
 	elevator_parking();

@@ -8,11 +8,11 @@
 #ifndef INCLUDE_PROTOKOL_H_
 #define INCLUDE_PROTOKOL_H_
 
-//zadefinovanie packetu
+//bytova poloha s rx buferu vytahu
 #define packet(pckt) rx_buff[(start + pckt) % RX_RINGBUFF_SIZE]
-//metoda na poslanie paketu
+//metoda na poslanie spravy vytahu
 void protocol_sendMessage(char dest, char *data, size_t data_dlzka);
-//metoda na rozparsovanie
+//metoda na analizovanie spravy s lpsci bufera
 void analize_incoming_packet();
 
 #endif /* INCLUDE_PROTOKOL_H_ */

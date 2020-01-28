@@ -28,7 +28,7 @@ void PIT_IRQHandler(){
 
 //inicializacia timeru
 
-void timers_init(const uint16_t t1_period_ms){
+void timer_init(const uint16_t t1_period_ms){
     pit_config_t pitconf;
     PIT_GetDefaultConfig(&pitconf);
 
